@@ -1,16 +1,18 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
 import 'package:orientation/orientation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:screen/screen.dart';
 import 'package:video_player/video_player.dart';
 import 'package:wakelock/wakelock.dart';
-import 'package:http/http.dart' as http;
 import 'package:yoyo_player/src/utils/utils.dart';
 import 'package:yoyo_player/src/widget/widget_bottombar.dart';
+
 import '../yoyo_player.dart';
 import 'model/audio.dart';
 import 'model/m3u8.dart';
@@ -55,6 +57,12 @@ class YoYoPlayer extends StatefulWidget {
   /// video Type
   final void Function(String videoType) onPlayingVideo;
 
+  /// [defaultVolume] set default volume, when player initialized.
+  final double defaultVolume;
+
+  /// when video play finished.
+  final void Function() onPlayFinished;
+
   ///
   /// ```dart
   /// YoYoPlayer(
@@ -68,21 +76,23 @@ class YoYoPlayer extends StatefulWidget {
   ///   aspectRatio : 16/9,
   /// )
   /// ```
-  YoYoPlayer({
-    Key key,
-    @required this.url,
-    @required this.aspectRatio,
-    this.videoStyle,
-    this.videoLoadingStyle,
-    this.onFullScreen,
-    this.onPlayingVideo,
-  }) : super(key: key);
+  YoYoPlayer(
+      {Key key,
+      @required this.url,
+      @required this.aspectRatio,
+      this.videoStyle,
+      this.videoLoadingStyle,
+      this.onFullScreen,
+      this.onPlayingVideo,
+      this.defaultVolume,
+      this.onPlayFinished})
+      : super(key: key);
 
   @override
-  _YoYoPlayerState createState() => _YoYoPlayerState();
+  YoYoPlayerState createState() => YoYoPlayerState();
 }
 
-class _YoYoPlayerState extends State<YoYoPlayer>
+class YoYoPlayerState extends State<YoYoPlayer>
     with SingleTickerProviderStateMixin {
   //video play type (hls,mp4,mkv,offline)
   String playType;
@@ -148,7 +158,12 @@ class _YoYoPlayerState extends State<YoYoPlayer>
 
     widgetsBinding.addPostFrameCallback((callback) {
       widgetsBinding.addPersistentFrameCallback((callback) {
-        if (context == null) return;
+        // refer context, but the widget has already disposed.
+        if (!mounted || context == null) {
+          return;
+        }
+        // set initial volume, when the widget mounted.
+        controller.setVolume(widget.defaultVolume ?? 1.0);
         var orientation = MediaQuery.of(context).orientation;
         bool _fullscreen;
         if (orientation == Orientation.landscape) {
@@ -484,16 +499,21 @@ class _YoYoPlayerState extends State<YoYoPlayer>
 
 // video Listener
   void listener() async {
-    if (controller.value.initialized && controller.value.isPlaying) {
-      if (!await Wakelock.isEnabled) {
-        await Wakelock.enable();
+    if (controller.value.initialized) {
+      if (controller.value.isPlaying) {
+        if (!await Wakelock.isEnabled) {
+          await Wakelock.enable();
+        }
+        setState(() {
+          videoDuration = convertDurationToString(controller.value.duration);
+          videoSeek = convertDurationToString(controller.value.position);
+          videoSeekSecond = controller.value.position.inSeconds.toDouble();
+          videoDurationSecond = controller.value.duration.inSeconds.toDouble();
+        });
+      } else {
+        // when play done
+        widget.onPlayFinished?.call();
       }
-      setState(() {
-        videoDuration = convertDurationToString(controller.value.duration);
-        videoSeek = convertDurationToString(controller.value.position);
-        videoSeekSecond = controller.value.position.inSeconds.toDouble();
-        videoDurationSecond = controller.value.duration.inSeconds.toDouble();
-      });
     } else {
       if (await Wakelock.isEnabled) {
         await Wakelock.disable();
@@ -579,6 +599,22 @@ class _YoYoPlayerState extends State<YoYoPlayer>
             .then((value) => setState(() => hasInitError = false))
             .catchError((e) => setState(() => hasInitError = true));
     }
+  }
+
+  void setVolume(double volume) {
+    controller.setVolume(volume);
+  }
+
+  void setLoop() {
+    controller.setLooping(true);
+  }
+
+  void pause() {
+    controller.pause();
+  }
+
+  void resume() {
+    controller.play();
   }
 
   String convertDurationToString(Duration duration) {
