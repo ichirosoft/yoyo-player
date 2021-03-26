@@ -239,7 +239,7 @@ class YoYoPlayerState extends State<YoYoPlayer>
 
   /// Video Player ActionBar
   Widget actionBar() {
-    return showMenu
+    return !widget.videoStyle.hideVideoControl && showMenu
         ? Align(
             alignment: Alignment.topCenter,
             child: Container(
@@ -316,15 +316,17 @@ class YoYoPlayerState extends State<YoYoPlayer>
   }
 
   List<Widget> videoBuiltInChildren() {
-    return [
-      actionBar(),
-      btm(),
-      m3u8list(),
-    ];
+    return [actionBar(), btm(), m3u8list(), volumeButton()];
+  }
+
+  Widget volumeButton() {
+    return widget.videoStyle.volumeButton != null
+        ? widget.videoStyle.volumeButton
+        : Container();
   }
 
   Widget btm() {
-    return showMenu
+    return !widget.videoStyle.hideVideoControl && showMenu
         ? bottomBar(
             controller: controller,
             videoSeek: "$videoSeek",
