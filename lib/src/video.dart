@@ -316,13 +316,7 @@ class YoYoPlayerState extends State<YoYoPlayer>
   }
 
   List<Widget> videoBuiltInChildren() {
-    return [actionBar(), btm(), m3u8list(), volumeButton()];
-  }
-
-  Widget volumeButton() {
-    return widget.videoStyle.volumeButton != null
-        ? widget.videoStyle.volumeButton
-        : Container();
+    return [actionBar(), btm(), m3u8list()];
   }
 
   Widget btm() {

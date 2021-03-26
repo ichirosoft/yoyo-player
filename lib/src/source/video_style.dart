@@ -15,7 +15,6 @@ class VideoStyle {
       Icons.fast_rewind_rounded,
       color: Colors.white,
     ),
-    this.volumeButton,
     this.playedColor = Colors.green,
     this.qualitystyle = const TextStyle(
       color: Colors.white,
@@ -31,7 +30,6 @@ class VideoStyle {
   final Widget fullscreen;
   final Widget forward;
   final Widget backward;
-  final Widget volumeButton;
   final Color playedColor;
   final TextStyle qualitystyle;
   final TextStyle qaShowStyle;
