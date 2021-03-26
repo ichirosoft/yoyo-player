@@ -226,7 +226,9 @@ class YoYoPlayerState extends State<YoYoPlayer>
         ),
       ),
     ];
-    videoChildren.addAll(videoBuiltInChildren());
+    if (!widget.videoStyle.hideVideoControl) {
+      videoChildren.addAll(videoBuiltInChildren());
+    }
     return AspectRatio(
       aspectRatio: fullScreen
           ? calculateAspectRatio(context, screenSize)
@@ -239,7 +241,7 @@ class YoYoPlayerState extends State<YoYoPlayer>
 
   /// Video Player ActionBar
   Widget actionBar() {
-    return !widget.videoStyle.hideVideoControl && showMenu
+    return showMenu
         ? Align(
             alignment: Alignment.topCenter,
             child: Container(
@@ -320,7 +322,7 @@ class YoYoPlayerState extends State<YoYoPlayer>
   }
 
   Widget btm() {
-    return !widget.videoStyle.hideVideoControl && showMenu
+    return showMenu
         ? bottomBar(
             controller: controller,
             videoSeek: "$videoSeek",
