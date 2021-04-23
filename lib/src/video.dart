@@ -417,7 +417,8 @@ class YoYoPlayerState extends State<YoYoPlayer>
       },
     );
     if (m3u8Content == null && video != null) {
-      http.Response response = await http.get(video);
+      var videoUri = Uri.parse(video);
+      http.Response response = await http.get(videoUri);
       if (response.statusCode == 200) {
         m3u8Content = utf8.decode(response.bodyBytes);
       }
