@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import 'package:yoyo_player/src/responses/play_response.dart';
+import 'package:yoyo_player/src/source/video_style.dart';
 
 Widget bottomBar(
     {VideoPlayerController controller,
@@ -9,6 +10,7 @@ Widget bottomBar(
     Widget backwardIcon,
     Widget forwardIcon,
     bool showMenu,
+    VideoStyle videoStyle,
     Function play}) {
   return showMenu
       ? Align(
@@ -25,26 +27,29 @@ Widget bottomBar(
                         controller,
                         allowScrubbing: true,
                         colors: VideoProgressColors(
-                            playedColor: Color.fromARGB(250, 0, 255, 112)),
-                        padding: EdgeInsets.only(left: 5.0, right: 5),
+                          playedColor: videoStyle.playedColor,
+                        ),
                       ),
                       Padding(
-                        padding: EdgeInsets.only(left: 5.0, right: 5.0),
+                        padding: EdgeInsets.only(
+                          left: 5.0,
+                          right: 5.0,
+                        ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
-                              videoSeek,
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white),
-                            ),
-                            Text(
-                              videoDuration,
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white),
-                            ),
+                            !videoStyle.hideVideoSeek
+                                ? Text(
+                                    videoSeek,
+                                    style: videoStyle.videoSeekStyle,
+                                  )
+                                : Container(),
+                            !videoStyle.hideVideoDuration
+                                ? Text(
+                                    videoDuration,
+                                    style: videoStyle.videoSeekStyle,
+                                  )
+                                : Container(),
                           ],
                         ),
                       ),
@@ -65,19 +70,14 @@ Widget bottomBar(
                               child: backwardIcon),
                           InkWell(
                             onTap: play,
-                            child: Icon(
-                              controller.value.isPlaying
-                                  ? Icons.pause_circle_outline
-                                  : Icons.play_circle_outline,
-                              color: Colors.white,
-                              size: 35,
-                            ),
+                            child: controller.value.isPlaying ? videoStyle.pause : videoStyle.play,
                           ),
                           InkWell(
-                              onTap: () {
-                                fastForward(controller: controller);
-                              },
-                              child: forwardIcon),
+                            onTap: () {
+                              fastForward(controller: controller);
+                            },
+                            child: forwardIcon,
+                          ),
                         ],
                       ),
                     ),

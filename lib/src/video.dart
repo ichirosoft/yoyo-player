@@ -92,8 +92,7 @@ class YoYoPlayer extends StatefulWidget {
   YoYoPlayerState createState() => YoYoPlayerState();
 }
 
-class YoYoPlayerState extends State<YoYoPlayer>
-    with SingleTickerProviderStateMixin {
+class YoYoPlayerState extends State<YoYoPlayer> with SingleTickerProviderStateMixin {
   //video play type (hls,mp4,mkv,offline)
   String playType;
   // Animation Controller
@@ -130,6 +129,8 @@ class YoYoPlayerState extends State<YoYoPlayer>
   bool fullScreen = false;
   // menu show
   bool showMenu = false;
+  // top menu show
+  bool showTopMenu = false;
   // auto show subtitle
   bool showSubtitles = false;
   // video status
@@ -148,13 +149,13 @@ class YoYoPlayerState extends State<YoYoPlayer>
     super.initState();
 
     /// Control bar animation
-    controlBarAnimationController = AnimationController(
-        duration: const Duration(milliseconds: 300), vsync: this);
-    controlTopBarAnimation = Tween(begin: -(36.0 + 0.0 * 2), end: 0.0)
-        .animate(controlBarAnimationController);
-    controlBottomBarAnimation = Tween(begin: -(36.0 + 0.0 * 2), end: 0.0)
-        .animate(controlBarAnimationController);
+    controlBarAnimationController = AnimationController(duration: const Duration(milliseconds: 300), vsync: this);
+    controlTopBarAnimation = Tween(begin: -(36.0 + 0.0 * 2), end: 0.0).animate(controlBarAnimationController);
+    controlBottomBarAnimation = Tween(begin: -(36.0 + 0.0 * 2), end: 0.0).animate(controlBarAnimationController);
     var widgetsBinding = WidgetsBinding.instance;
+
+    showMenu = !widget.videoStyle.hideVideoControl;
+    showTopMenu = !widget.videoStyle.hideVideoFullScreen;
 
     widgetsBinding.addPostFrameCallback((callback) {
       widgetsBinding.addPersistentFrameCallback((callback) {
@@ -230,18 +231,14 @@ class YoYoPlayerState extends State<YoYoPlayer>
       videoChildren.addAll(videoBuiltInChildren());
     }
     return AspectRatio(
-      aspectRatio: fullScreen
-          ? calculateAspectRatio(context, screenSize)
-          : widget.aspectRatio,
-      child: controller.value.initialized
-          ? Stack(children: videoChildren)
-          : widget.videoLoadingStyle.loading,
+      aspectRatio: fullScreen ? calculateAspectRatio(context, screenSize) : widget.aspectRatio,
+      child: controller.value.initialized ? Stack(children: videoChildren) : widget.videoLoadingStyle.loading,
     );
   }
 
   /// Video Player ActionBar
   Widget actionBar() {
-    return showMenu
+    return showTopMenu
         ? Align(
             alignment: Alignment.topCenter,
             child: Container(
@@ -295,8 +292,7 @@ class YoYoPlayerState extends State<YoYoPlayer>
                               m3u8quality = e.dataQuality;
                               m3u8show = false;
                               onSelectQuality(e);
-                              print(
-                                  "--- quality select ---\nquality : ${e.dataQuality}\nlink : ${e.dataURL}");
+                              print("--- quality select ---\nquality : ${e.dataQuality}\nlink : ${e.dataURL}");
                             },
                             child: Container(
                                 width: 90,
@@ -330,6 +326,7 @@ class YoYoPlayerState extends State<YoYoPlayer>
             forwardIcon: widget.videoStyle.forward,
             backwardIcon: widget.videoStyle.backward,
             showMenu: showMenu,
+            videoStyle: widget.videoStyle,
             play: () => togglePlay())
         : Container();
   }
@@ -379,8 +376,7 @@ class YoYoPlayerState extends State<YoYoPlayer>
     } else {
       setState(() {
         offline = true;
-        print(
-            "--- Current Video Status ---\noffline : $offline \n --- :3 done url check ---");
+        print("--- Current Video Status ---\noffline : $offline \n --- :3 done url check ---");
       });
       videoControlSetup(url);
     }
@@ -424,10 +420,8 @@ class YoYoPlayerState extends State<YoYoPlayer>
       }
     }
     List<RegExpMatch> matches = regExp.allMatches(m3u8Content).toList();
-    List<RegExpMatch> audioMatches =
-        regExpAudio.allMatches(m3u8Content).toList();
-    print(
-        "--- HLS Data ----\n$m3u8Content \ntotal length: ${yoyo.length} \nfinish");
+    List<RegExpMatch> audioMatches = regExpAudio.allMatches(m3u8Content).toList();
+    print("--- HLS Data ----\n$m3u8Content \ntotal length: ${yoyo.length} \nfinish");
 
     matches.forEach(
       (RegExpMatch regExpMatch) async {
@@ -571,28 +565,21 @@ class YoYoPlayerState extends State<YoYoPlayer>
 
   void videoInit(String url) {
     if (offline == false) {
-      print(
-          "--- Player Status ---\nplay url : $url\noffline : $offline\n--- start playing –––");
+      print("--- Player Status ---\nplay url : $url\noffline : $offline\n--- start playing –––");
 
       if (playType == "MP4") {
         // Play MP4
-        controller =
-            VideoPlayerController.network(url, formatHint: VideoFormat.other)
-              ..initialize();
+        controller = VideoPlayerController.network(url, formatHint: VideoFormat.other)..initialize();
       } else if (playType == "MKV") {
-        controller =
-            VideoPlayerController.network(url, formatHint: VideoFormat.dash)
-              ..initialize();
+        controller = VideoPlayerController.network(url, formatHint: VideoFormat.dash)..initialize();
       } else if (playType == "HLS") {
-        controller =
-            VideoPlayerController.network(url, formatHint: VideoFormat.hls)
-              ..initialize()
-                  .then((_) => setState(() => hasInitError = false))
-                  .catchError((e) => setState(() => hasInitError = true));
+        controller = VideoPlayerController.network(url, formatHint: VideoFormat.hls)
+          ..initialize()
+              .then((_) => setState(() => hasInitError = false))
+              .catchError((e) => setState(() => hasInitError = true));
       }
     } else {
-      print(
-          "--- Player Status ---\nplay url : $url\noffline : $offline\n--- start playing –––");
+      print("--- Player Status ---\nplay url : $url\noffline : $offline\n--- start playing –––");
       controller = VideoPlayerController.file(File(url))
         ..initialize()
             .then((value) => setState(() => hasInitError = false))
@@ -648,8 +635,7 @@ class YoYoPlayerState extends State<YoYoPlayer>
       try {
         String text;
         final Directory directory = await getApplicationDocumentsDirectory();
-        final File file =
-            File('${directory.path}/yoyo${data.dataQuality}.m3u8');
+        final File file = File('${directory.path}/yoyo${data.dataQuality}.m3u8');
         print("read file success");
         text = await file.readAsString();
         print("data : $text  :: data");
