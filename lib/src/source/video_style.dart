@@ -19,6 +19,7 @@ class VideoStyle {
       color: Colors.white,
     ),
     this.playButtonColor = Colors.white,
+    this.playBackgroundColor = Colors.white,
     this.playedColor = Colors.green,
     this.videoSeekStyle = const TextStyle(
       fontWeight: FontWeight.bold,
@@ -42,6 +43,7 @@ class VideoStyle {
   final Widget forward;
   final Widget backward;
   final Color playedColor;
+  final Color playBackgroundColor;
   final Color playButtonColor;
   final TextStyle videoSeekStyle;
   final TextStyle qualitystyle;

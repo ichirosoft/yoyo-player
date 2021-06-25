@@ -28,6 +28,7 @@ Widget bottomBar(
                         allowScrubbing: true,
                         colors: VideoProgressColors(
                           playedColor: videoStyle.playedColor,
+                          backgroundColor: videoStyle.playBackgroundColor,
                         ),
                       ),
                       Padding(
