@@ -232,7 +232,7 @@ class YoYoPlayerState extends State<YoYoPlayer> with SingleTickerProviderStateMi
     }
     return AspectRatio(
       aspectRatio: fullScreen ? calculateAspectRatio(context, screenSize) : widget.aspectRatio,
-      child: controller.value.initialized ? Stack(children: videoChildren) : widget.videoLoadingStyle.loading,
+      child: controller.value.isInitialized ? Stack(children: videoChildren) : widget.videoLoadingStyle.loading,
     );
   }
 
@@ -492,9 +492,9 @@ class YoYoPlayerState extends State<YoYoPlayer> with SingleTickerProviderStateMi
 
 // video Listener
   void listener() async {
-    if (controller.value.initialized) {
+    if (controller.value.isInitialized) {
       if (controller.value.isPlaying) {
-        if (!await Wakelock.isEnabled) {
+        if (!await Wakelock.enabled) {
           await Wakelock.enable();
         }
         setState(() {
@@ -508,7 +508,7 @@ class YoYoPlayerState extends State<YoYoPlayer> with SingleTickerProviderStateMi
         widget.onPlayFinished?.call();
       }
     } else {
-      if (await Wakelock.isEnabled) {
+      if (await Wakelock.enabled) {
         await Wakelock.disable();
         setState(() {});
       }
